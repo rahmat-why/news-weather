@@ -2,27 +2,29 @@ import response from './../response.js'
 import { Kota, Provinsi, Pulau, Message, NextState } from "../models/newsWeatherModel.js";
 import { sendMessage } from './WhatsappController.js'
 
-export const showKota = async(req, res) => {
+export const showKota = async(provinsi_id) => {
     try {
         const show_kota = await Kota.findAll({
             where: {
-                provinsi_id: req.params.provinsi_id
+                provinsi_id: provinsi_id
             }
         });
-        res.json(show_kota);
+
+        return show_kota
     } catch (error) {
         console.log(error);
     }
 }
 
-export const showProvinsi = async(req, res) => {
+export const showProvinsi = async(pulau_id) => {
     try {
         const show_kota = await Provinsi.findAll({
             where: {
-                pulau_id: req.params.pulau_id
+                pulau_id: pulau_id
             }
         });
-        res.json(show_kota);
+
+        return show_kota
     } catch (error) {
         console.log(error);
     }
