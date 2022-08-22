@@ -47,10 +47,34 @@ const Message = database.define('messages', {
     content: Sequelize.STRING
 });
 
+const Weather = database.define('weathers', {
+  weather_id: {
+    primaryKey: true,
+    type: Sequelize.STRING,
+  },
+  kota_id: Sequelize.STRING,
+  weather: Sequelize.STRING,
+  date: Sequelize.STRING
+});
+
+const Subscriber = database.define('subscribers', {
+  telp: {
+    primaryKey: true,
+    type: Sequelize.STRING,
+  },
+  name: Sequelize.STRING,
+  state_id: Sequelize.STRING,
+  pulau_id: Sequelize.STRING,
+  provinsi_id: Sequelize.STRING,
+  kota_id: Sequelize.STRING
+});
+
 export {
     Kota,
     Provinsi,
     Pulau,
     NextState,
-    Message
+    Message,
+    Weather,
+    Subscriber
 };

@@ -1,6 +1,27 @@
 import response from './../response.js'
-import { Kota, Provinsi, Pulau, Message, NextState } from "../models/newsWeatherModel.js";
+import { Kota, Provinsi, Pulau, Message, NextState, Weather, Subscriber } from "../models/newsWeatherModel.js";
 import { sendMessage } from './WhatsappController.js'
+
+export const storeWeather = async(kota_id, weather, date) => {
+    try {
+        const show_weather = await showWeather(kota_id, date)
+        if (show_weather.length > 0) {
+            return false
+        }
+
+        var store_weather = await Weather.create({
+            kota_id: kota_id,
+            weather: weather,
+            date: date
+        });
+
+        return 1
+    } catch (error) {
+        console.log(error);
+    }
+
+    return 1
+}
 
 export const showKota = async(provinsi_id) => {
     try {
@@ -11,6 +32,20 @@ export const showKota = async(provinsi_id) => {
         });
 
         return show_kota
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export const getKota = async(kota_id) => {
+    try {
+        const get_kota = await Kota.findOne({
+            where: {
+                kota_id: kota_id
+            }
+        });
+
+        return get_kota
     } catch (error) {
         console.log(error);
     }
@@ -65,6 +100,12 @@ export const showMessage = async(message_id) => {
     return JSON.parse(messages.content)
 }
 
+export const showSubscriber = async() => {
+    var subscriber = await Subscriber.findAll({ });
+
+    return subscriber
+}
+
 export const executeMessage = async(message_id, telp) => {
     let show_message = await showMessage(message_id)
     for(let i in show_message) {
@@ -73,4 +114,19 @@ export const executeMessage = async(message_id, telp) => {
     }
 
     return 1
+}
+
+export const showWeather = async(kota_id, date) => {
+    try {
+        const show_weather = await Weather.findAll({
+            where: {
+                kota_id: kota_id,
+                date: date
+            }
+        });
+
+        return show_weather
+    } catch (error) {
+        console.log(error);
+    }
 }

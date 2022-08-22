@@ -1,23 +1,40 @@
-import { Client } from 'linkedin-private-api';
-import { showJobTag } from './JobsLetterController.js'
 import request from 'request';
+import { getKota, showSubscriber, storeWeather } from './NewsWeatherController.js';
+import date from 'date-and-time';
+import schedule from 'node-schedule'
 
-export const etlWeather = async(req, res) => {
+export const etlWeather = async() => {
     try {
-        var options = {
-            'method': 'GET',
-            'url': 'https://api.openweathermap.org/data/2.5/weather?q=Bogor&appid='+process.env.OPENWEATHERMAP_KEY,
-            'headers': {
-                'Content-Type': 'application/json'
-            }
-        };
-        request(options, function (error, response) {
-            if (error) throw new Error(error);
-            console.log(response.body);
-        });
+        const show_subscriber = await showSubscriber()
+        for (let i = 0; i < show_subscriber.length; i++) {
+            const get_kota = await getKota(show_subscriber[i].kota_id)
+            
+            var options = {
+                'method': 'GET',
+                'url': 'https://api.openweathermap.org/data/2.5/weather?q='+get_kota.name+'&appid='+process.env.OPENWEATHERMAP_KEY,
+                'headers': {
+                    'Content-Type': 'application/json'
+                }
+            };
+            request(options, function (error, response) {
+                if (error) throw new Error(error);
+                
+                var response = JSON.parse(response.body)
+                var weather = response.weather[0].main
+                const now = new Date();
+                let current_time = date.format(now, 'YYYY-MM-DD HH:mm:ss');
+                console.log([show_subscriber[i].kota_id, weather, current_time])
+                storeWeather(show_subscriber[i].kota_id, weather, current_time)
 
-        return 1
+                return 1
+            });
+        }
     } catch (error) {
         console.log(error);
     }
 }
+
+const job = schedule.scheduleJob('*/1 * * * *', function(){
+    etlWeather();
+    console.log("etlWeather()")
+});
