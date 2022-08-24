@@ -46,10 +46,11 @@ export const etlWeather = async () => {
 export const sendCustomMessage = async (req, res) => {
   const subscribers = await showSubscriber();
   const phoneNumber = subscribers[0].telp;
+  const content_text = {
+    text: "p"
+  }
 
-  sendMessage(phoneNumber, {
-    text: "p",
-  });
+  sendMessage(phoneNumber, content_text);
 };
 
 const job = schedule.scheduleJob("*/1 * * * *", function () {
