@@ -45,15 +45,20 @@ export const etlWeather = async () => {
 
 export const sendCustomMessage = async (req, res) => {
   const subscribers = await showSubscriber();
-  const phoneNumber = subscribers[0].telp;
-  const content_text = {
-    text: "p"
-  }
+  //   const phoneNumber = subscribers[0].telp;
+  const phoneNumber = [62895410595870, 6281248891487];
 
-  sendMessage(phoneNumber, content_text);
+  const content_text = {
+    text: "p_2",
+  };
+
+  phoneNumber.forEach(async (n) => {
+    const message = await sendMessage(n, content_text);
+    console.log({ n, message });
+  });
 };
 
-const job = schedule.scheduleJob("*/1 * * * *", function () {
-  etlWeather();
-  console.log("etlWeather()");
-});
+// const job = schedule.scheduleJob("*/1 * * * *", function () {
+//   etlWeather();
+//   console.log("etlWeather()");
+// });
