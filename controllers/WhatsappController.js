@@ -4,7 +4,7 @@ import request from 'request';
 export const sendMessage = async(receiver, content_text) => {
     var options = {
         'method': 'POST',
-        'url': 'https://lab.itsbuah.com/chats/send',
+        'url': 'api.angel-ping.my.id/chats/send',
         'headers': {
             'angel-key': 'ECOM.c9dc7e39c892544e815',
             'Content-Type': 'application/json'
