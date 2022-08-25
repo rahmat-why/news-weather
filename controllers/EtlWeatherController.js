@@ -7,6 +7,7 @@ import {
 import date from "date-and-time";
 import schedule from "node-schedule";
 import { sendMessage } from "./WhatsappController.js";
+import { Message } from "../models/newsWeatherModel.js";
 
 export const etlWeather = async () => {
   try {
@@ -46,16 +47,22 @@ export const etlWeather = async () => {
 export const sendCustomMessage = async (req, res) => {
   const subscribers = await showSubscriber();
   //   const phoneNumber = subscribers[0].telp;
-  const phoneNumber = [62895410595870, 6281248891487];
-
-  const content_text = {
-    text: "p_2",
-  };
-
-  phoneNumber.forEach(async (n) => {
-    const message = await sendMessage(n, content_text);
-    console.log({ n, message });
+  // const phoneNumber = ["62895410595870", "6281248891487"];
+  const messageInDatabase = await Message.findOne({
+    where: { message_id: "MSG01" },
   });
+  console.log(messageInDatabase.content);
+  // const message_parse = JSON.parse(messageInDatabase.content);
+  // console.log(message_parse[0].content_text.text);
+
+  //   const content_text = {
+  //     text: "p_2",
+  //   };
+
+  //   phoneNumber.forEach(async (n) => {
+  //     const message = await sendMessage(n, content_text);
+  //     console.log({ n, message });
+  //   });
 };
 
 // const job = schedule.scheduleJob("*/1 * * * *", function () {

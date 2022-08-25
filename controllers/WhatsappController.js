@@ -10,7 +10,7 @@ export const sendMessage = async (receiver, content_text) => {
       "Content-Type": "application/json",
     },
     body: {
-      receiver: `${receiver}`,
+      receiver: receiver,
       message: content_text,
     },
     json: true,
