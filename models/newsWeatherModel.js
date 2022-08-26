@@ -21,23 +21,33 @@ const Provinsi = database.define("provinsi", {
   name: Sequelize.STRING,
 });
 
-const Pulau = database.define("pulau", {
-  pulau_id: {
-    primaryKey: true,
-    type: Sequelize.STRING,
+const Pulau = database.define(
+  "pulau",
+  {
+    pulau_id: {
+      primaryKey: true,
+      type: Sequelize.STRING,
+    },
+    name: Sequelize.STRING,
   },
-  name: Sequelize.STRING,
-});
+  {
+    freezeTableName: true, // https://stackoverflow.com/a/23187186 to prevent sequelize from automatically add "s" to the table name
+  }
+);
 
-const NextState = database.define("next_states", {
-  id: {
-    primaryKey: true,
-    type: Sequelize.STRING,
+const NextState = database.define(
+  "next_states",
+  {
+    id: {
+      primaryKey: true,
+      type: Sequelize.STRING,
+    },
+    name: Sequelize.STRING,
+    current_state: Sequelize.STRING,
+    next_state: Sequelize.STRING,
   },
-  name: Sequelize.STRING,
-  current_states: Sequelize.STRING,
-  next_states: Sequelize.STRING,
-});
+  { timestamps: false }
+);
 
 const Message = database.define(
   "messages",
@@ -71,6 +81,25 @@ const Subscriber = database.define("subscribers", {
   pulau_id: Sequelize.STRING,
   provinsi_id: Sequelize.STRING,
   kota_id: Sequelize.STRING,
+});
+
+NextState.hasOne(Subscriber, {
+  foreignKey: "state_id",
+});
+Subscriber.belongsTo(NextState, {
+  foreignKey: "state_id",
+});
+Pulau.hasOne(Subscriber, {
+  foreignKey: "pulau_id",
+});
+Subscriber.belongsTo(Pulau, {
+  foreignKey: "pulau_id",
+});
+Message.hasOne(NextState, {
+  foreignKey: "message_id",
+});
+NextState.belongsTo(Message, {
+  foreignKey: "message_id",
 });
 
 export { Kota, Provinsi, Pulau, NextState, Message, Weather, Subscriber };
