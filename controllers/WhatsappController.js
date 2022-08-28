@@ -6,7 +6,7 @@ import {
   Pulau,
   Subscriber,
 } from "../models/newsWeatherModel.js";
-import { showMessage } from "./NewsWeatherController.js";
+import { showMessage, showNextState, executeMessage, updateSubscriber } from "./NewsWeatherController.js";
 import startStage from "../functions/startStage.js";
 import selectPulauStage from "../functions/selectPulauStage.js";
 
@@ -15,7 +15,7 @@ export const sendMessage = async (receiver, content_text) => {
   const url = "https://api.angel-ping.my.id/chats/send";
   const option = {
     headers: {
-      "angel-key": "ECOM.c9dc7e39c892544e815",
+      "angel-key": "ECOM.c9dc7e29c8dg44e30F",
       "Content-Type": "application/json",
     },
     body: {
@@ -42,7 +42,7 @@ export const sendMessage = async (receiver, content_text) => {
 
 export const webhook = async (req, res) => {
   const { telp, name, message: subscriberMessage, fromMe, id } = req.body.key;
-  let subscriber = await Subscriber.findOrCreate({
+  var subscriber = await Subscriber.findOrCreate({
     where: { telp },
     include: [
       {
@@ -66,24 +66,37 @@ export const webhook = async (req, res) => {
       kota_id: null,
     },
   });
+
   // The response will be an array of subscriber object
   // hence we have to access it with subscriber[0]
-  subscriber = subscriber[0];
-  let messages;
+  var subscriber = subscriber[0]
 
-  console.log(subscriber.telp, "subscriber telp");
-  console.log(subscriber.state_id, "Subscriber state id");
-  res.send(subscriber);
+  const show_next_state = await showNextState(subscriber.state_id)
+  const execute_message = await executeMessage(show_next_state.message_id, telp)
+
+  var update = {
+    state_id: show_next_state.next_state
+  }
+  const update_subscriber = await updateSubscriber(telp, update)
+
+  res.json(show_next_state)
+
+  // FUNCTION REGEX PULAU
+  // FUNCTION REGEX PROVINSI BERDASARKAN PULAU
+  // FUNCTION REGEX KOTA BERDASARKAN PROVINSI
+  // FUNCTION UPDATE PULAU, PROVINSI, KOTA SUBSCRIBER
+
+  return false
 
   if (subscriber.state_id) {
     const stateId = subscriber.state_id;
-    messages = JSON.parse(subscriber.state_id.message.content);
+    var messages = JSON.parse(subscriber.state_id.message.content);
 
     if (stateId === "STATE1") await startStage(subscriber, messages);
     if (stateId === "STATE2")
       await selectPulauStage(subscriber, messages, subscriberMessage);
   } else {
-    messages = await showMessage("MSG01");
+    var messages = await showMessage("MSG01");
   }
   const startStageResult = await startStage(subscriber, messages);
   res.send(startStageResult);

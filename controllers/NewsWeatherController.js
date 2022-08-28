@@ -130,3 +130,13 @@ export const showWeather = async(kota_id, date) => {
         console.log(error);
     }
 }
+
+export const updateSubscriber = async(telp, update) => {
+    await Subscriber.update(update, {
+        where: {
+            telp: telp
+        }
+    });
+
+    return 1
+}
