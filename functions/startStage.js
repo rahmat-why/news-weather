@@ -18,9 +18,9 @@ async function startStage(subscriber, messages) {
     /%list_pulau%/,
     listPulau
   );
-  messages.forEach(async (message) => {
-    await sendMessage(subscriber.telp, message.content_text);
-  });
+  // messages.forEach(async (message) => {
+  //   await sendMessage(subscriber.telp, message.content_text);
+  // });
   const result = await Subscriber.update(
     {
       state_id: "STATE1",

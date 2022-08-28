@@ -8,6 +8,7 @@ import {
 } from "../models/newsWeatherModel.js";
 import { showMessage } from "./NewsWeatherController.js";
 import startStage from "../functions/startStage.js";
+import selectPulauStage from "../functions/selectPulauStage.js";
 
 export const sendMessage = async (receiver, content_text) => {
   console.log(receiver, content_text);
@@ -65,15 +66,23 @@ export const webhook = async (req, res) => {
       kota_id: null,
     },
   });
+  // The response will be an array of subscriber object
+  // hence we have to access it with subscriber[0]
+  subscriber = subscriber[0];
   let messages;
 
-  if (subscriber.next_state) {
-    messages = JSON.parse(subscriber.next_state.message.content);
+  console.log(subscriber.telp, "subscriber telp");
+  console.log(subscriber.state_id, "Subscriber state id");
+  res.send(subscriber);
+
+  if (subscriber.state_id) {
+    const stateId = subscriber.state_id;
+    messages = JSON.parse(subscriber.state_id.message.content);
+
+    if (stateId === "STATE1") await startStage(subscriber, messages);
+    if (stateId === "STATE2")
+      await selectPulauStage(subscriber, messages, subscriberMessage);
   } else {
-    // Because after a new subscriber is created
-    // the response will be an array of subscriber object
-    // hence we have to access it with subscriber[0]
-    subscriber = subscriber[0];
     messages = await showMessage("MSG01");
   }
   const startStageResult = await startStage(subscriber, messages);

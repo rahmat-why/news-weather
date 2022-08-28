@@ -83,12 +83,13 @@ const Subscriber = database.define("subscribers", {
   kota_id: Sequelize.STRING,
 });
 
-NextState.hasOne(Subscriber, {
-  foreignKey: "state_id",
+Subscriber.hasOne(NextState, {
+  foreignKey: "current_state",
 });
-Subscriber.belongsTo(NextState, {
-  foreignKey: "state_id",
+NextState.belongsTo(Subscriber, {
+  foreignKey: "current_state",
 });
+
 Pulau.hasOne(Subscriber, {
   foreignKey: "pulau_id",
 });
