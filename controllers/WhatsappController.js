@@ -6,6 +6,8 @@ import {
   Pulau,
   Subscriber,
 } from "../models/newsWeatherModel.js";
+import { showMessage } from "./NewsWeatherController.js";
+import startStage from "../functions/startStage.js";
 
 export const sendMessage = async (receiver, content_text) => {
   console.log(receiver, content_text);
@@ -38,8 +40,8 @@ export const sendMessage = async (receiver, content_text) => {
 };
 
 export const webhook = async (req, res) => {
-  const { telp, name, message: userMessage, fromMe, id } = req.body.key;
-  const subscriber = await Subscriber.findOne({
+  const { telp, name, message: subscriberMessage, fromMe, id } = req.body.key;
+  let subscriber = await Subscriber.findOrCreate({
     where: { telp },
     include: [
       {
@@ -54,34 +56,26 @@ export const webhook = async (req, res) => {
         model: Pulau,
       },
     ],
+    defaults: {
+      telp,
+      name,
+      state_id: null,
+      pulau_id: null,
+      provinsi_id: null,
+      kota_id: null,
+    },
   });
-  if (subscriber) {
-    const messages = JSON.parse(subscriber.next_state.message.content);
-    messages.forEach(async (message) => {
-      message.content_text.text = message.content_text.text.replace(
-        /%push_name%/,
-        subscriber.name
-      );
-      res.send(subscriber);
-      // const response = await sendMessage(subscriber.telp, message.content_text);
-      // res.send(response);
-    });
-    res.send(subscriber);
+  let messages;
+
+  if (subscriber.next_state) {
+    messages = JSON.parse(subscriber.next_state.message.content);
   } else {
-    res.status(500).send({ message: "Subscriber does not exist" });
-    // const newSubscriber = await Subscriber.findOrCreate({
-    //   where: {
-    //     telp,
-    //   },
-    //   defaults: {
-    //     telp,
-    //     name,
-    //     state_id: null,
-    //     pulau_id: null,
-    //     provinsi_id: null,
-    //     kota_id: null,
-    //   },
-    // });
-    // console.log(newSubscriber);
+    // Because after a new subscriber is created
+    // the response will be an array of subscriber object
+    // hence we have to access it with subscriber[0]
+    subscriber = subscriber[0];
+    messages = await showMessage("MSG01");
   }
+  const startStageResult = await startStage(subscriber, messages);
+  res.send(startStageResult);
 };
