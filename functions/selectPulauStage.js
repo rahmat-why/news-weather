@@ -17,17 +17,12 @@ async function selectPulauStage(subscriber, message_id) {
     listPulau += `${pulau.pulau_id}. `;
     listPulau += pulau.name;
   });
-  messages[0].content_text.text = messages[0].content_text.text.replace(
-    /%push_name%/,
-    subscriber.name
-  );
-  messages[1].content_text.text = messages[1].content_text.text.replace(
-    /%list_pulau%/,
-    listPulau
-  );
   for (let i in messages) {
-    console.log(messages[i].content_text);
-    await sendMessage(subscriber.telp, messages[i].content_text);
+    var contentText = messages[i].content_text;
+    contentText.text = contentText.text.replace(/%list_pulau%/, listPulau);
+    contentText.text = contentText.text.replace(/%push_name%/, subscriber.name);
+    
+    await sendMessage(subscriber.telp, contentText);
   }
 
   const result = await Subscriber.update(
