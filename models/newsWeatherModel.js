@@ -3,23 +3,35 @@ import { Sequelize } from "sequelize";
 // import connection
 import database from "../config/database.js";
 
-const Kota = database.define("kota", {
-  kota_id: {
-    primaryKey: true,
-    type: Sequelize.STRING,
+const Kota = database.define(
+  "kota",
+  {
+    kota_id: {
+      primaryKey: true,
+      type: Sequelize.STRING,
+    },
+    provinsi_id: Sequelize.STRING,
+    name: Sequelize.STRING,
   },
-  provinsi_id: Sequelize.STRING,
-  name: Sequelize.STRING,
-});
+  {
+    freezeTableName: true, // https://stackoverflow.com/a/23187186 to prevent sequelize from automatically add "s" to the table name
+  }
+);
 
-const Provinsi = database.define("provinsi", {
-  provinsi_id: {
-    primaryKey: true,
-    type: Sequelize.STRING,
+const Provinsi = database.define(
+  "provinsi",
+  {
+    provinsi_id: {
+      primaryKey: true,
+      type: Sequelize.STRING,
+    },
+    pulau_id: Sequelize.STRING,
+    name: Sequelize.STRING,
   },
-  pulau_id: Sequelize.STRING,
-  name: Sequelize.STRING,
-});
+  {
+    freezeTableName: true, // https://stackoverflow.com/a/23187186 to prevent sequelize from automatically add "s" to the table name
+  }
+);
 
 const Pulau = database.define(
   "pulau",
