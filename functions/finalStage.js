@@ -36,10 +36,12 @@ async function finalStage(subscriber, message_id, subscriberMessage) {
       }
     }
 
-    await sendMessage(subscriber.telp, { text: "Kota tidak ditemukan" });
+    await sendMessage(subscriber.telp, {
+      text: "Kota tidak ditemukan\nKetik */list kota* untuk melihat daftar kota dan cara memilihnya",
+    });
   } else {
     await sendMessage(subscriber.telp, {
-      text: "Kirim yang benar",
+      text: "Maaf, input yang kamu masukkan salah\nKetik */list kota* untuk melihat daftar kota dan cara memilihnya",
     });
   }
 }

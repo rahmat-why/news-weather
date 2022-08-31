@@ -6,6 +6,30 @@ import {
 import { sendMessage } from "../controllers/WhatsappController.js";
 import { Pulau, Subscriber } from "../models/newsWeatherModel.js";
 
+export async function generateListProvinsiMessage(pulau_id) {
+  const allProvinsi = await showProvinsi(pulau_id);
+  var listProvinsi = "\n";
+  const messages = await showMessage("MSG02");
+
+  for (let i in allProvinsi) {
+    const provinsi = allProvinsi[i];
+
+    listProvinsi += "\n";
+    listProvinsi += `${provinsi.provinsi_id}. `;
+    listProvinsi += provinsi.name;
+  }
+
+  for (let i in messages) {
+    var contentText = messages[i].content_text;
+    contentText.text = contentText.text.replace(
+      /%list_provinsi%/,
+      listProvinsi
+    );
+  }
+
+  return messages[0];
+}
+
 async function selectProvinsiStage(subscriber, message_id, subscriberMessage) {
   // To check whether the "message from subscriber" is a number
   if (+subscriberMessage) {
@@ -13,30 +37,12 @@ async function selectProvinsiStage(subscriber, message_id, subscriberMessage) {
     for (let i in allPulau) {
       // Sama dengannya 2 karena match antara string dengan number
       if (subscriberMessage == allPulau[i].pulau_id) {
+        const message = await generateListProvinsiMessage(allPulau[i].pulau_id);
         await updateSubscriber(subscriber.telp, {
           pulau_id: allPulau[i].pulau_id,
         });
-        const allProvinsi = await showProvinsi(allPulau[i].pulau_id);
-        var listProvinsi = "\n";
-        const messages = await showMessage(message_id);
+        await sendMessage(subscriber.telp, message.content_text);
 
-        for (let i in allProvinsi) {
-          const provinsi = allProvinsi[i];
-
-          listProvinsi += "\n";
-          listProvinsi += `${provinsi.provinsi_id}. `;
-          listProvinsi += provinsi.name;
-        }
-
-        for (let i in messages) {
-          const contentText = messages[i].content_text;
-
-          contentText.text = contentText.text.replace(
-            /%list_provinsi%/,
-            listProvinsi
-          );
-          await sendMessage(subscriber.telp, contentText);
-        }
         const result = await Subscriber.update(
           { state_id: "STATE2" },
           { where: { telp: subscriber.telp } }
@@ -48,7 +54,7 @@ async function selectProvinsiStage(subscriber, message_id, subscriberMessage) {
     await sendMessage(subscriber.telp, { text: "Pulau tidak ditemukan" });
   } else {
     await sendMessage(subscriber.telp, {
-      text: "Kirim yang benar",
+      text: "Maaf, input yang kamu masukkan salah\nKetik */list pulau* untuk melihat daftar pulau dan cara memilihnya",
     });
   }
 }

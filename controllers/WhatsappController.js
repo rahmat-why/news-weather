@@ -1,9 +1,15 @@
 import request from "request";
-import { Kota, Subscriber } from "../models/newsWeatherModel.js";
+import { Kota, Pulau, Subscriber } from "../models/newsWeatherModel.js";
 import { showNextState } from "./NewsWeatherController.js";
-import selectPulauStage from "../functions/selectPulauStage.js";
-import selectProvinsiStage from "../functions/selectProvinsiStage.js";
-import selectKotaStage from "../functions/selectKotaStage.js";
+import selectPulauStage, {
+  generateListPulauMessage,
+} from "../functions/selectPulauStage.js";
+import selectProvinsiStage, {
+  generateListProvinsiMessage,
+} from "../functions/selectProvinsiStage.js";
+import selectKotaStage, {
+  generateListKotaMessage,
+} from "../functions/selectKotaStage.js";
 import finalStage from "../functions/finalStage.js";
 import timeFormatter from "../functions/timeFormatter.js";
 
@@ -41,6 +47,10 @@ export const sendMessage = async (receiver, content_text) => {
 export const webhook = async (req, res) => {
   const { telp, name, message: subscriberMessage, fromMe, id } = req.body.key;
 
+  if (subscriberMessage === "/set-kota") {
+    await Subscriber.destroy({ where: { telp } });
+  }
+
   var subscriber = await Subscriber.findOrCreate({
     where: { telp },
     defaults: {
@@ -56,7 +66,51 @@ export const webhook = async (req, res) => {
   // The response will be an array of subscriber object
   // hence we have to access it with subscriber[0]
   var subscriber = subscriber[0];
+  const show_next_state = await showNextState(subscriber.state_id);
 
+  if (subscriberMessage.includes("/list")) {
+    var payload = subscriberMessage.split(" ")[1];
+
+    if (payload) {
+      payload = payload.toLowerCase();
+
+      if (payload === "pulau") {
+        const messages = await generateListPulauMessage();
+        await sendMessage(subscriber.telp, messages[1].content_text);
+
+        return true;
+      } else if (payload === "provinsi") {
+        if (subscriber.pulau_id) {
+          const message = await generateListProvinsiMessage(
+            subscriber.pulau_id
+          );
+          return sendMessage(subscriber.telp, message.content_text);
+        } else {
+          return sendMessage(subscriber.telp, {
+            text: "Kamu belum bisa mengakses fitur ini",
+          });
+        }
+      } else if (payload === "kota") {
+        if (subscriber.provinsi_id && subscriber.pulau_id) {
+          const message = await generateListKotaMessage(subscriber.provinsi_id);
+          return sendMessage(subscriber.telp, message.content_text);
+        } else {
+          return sendMessage(subscriber.telp, {
+            text: "Kamu belum bisa mengakses fitur ini",
+          });
+        }
+      } else {
+        await sendMessage(subscriber.telp, {
+          text: "ini adalah list command dengan payload " + payload,
+        });
+      }
+    } else {
+      await sendMessage(subscriber.telp, {
+        text: "ini adalah list command",
+      });
+    }
+    return true;
+  }
   if (subscriberMessage === "/getweather") {
     if (subscriber.kota_id) {
       const kota_id = subscriber.kota_id;
@@ -70,11 +124,15 @@ export const webhook = async (req, res) => {
       request(
         `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${apiId}`,
 
-        (err, response, data) => {
+        (err, _, data) => {
           if (err) {
             return console.log(err);
           }
-          data = JSON.parse(data); // Cause the response data is a string
+          data = JSON.parse(data); // karena response data adalah string
+          if (data.cod == 404)
+            return sendMessage(subscriber.telp, {
+              text: `Halo ${subscriber.name}, sepertinya kota kamu belum tersedia\nSilahkan memilih kota yang lain dengan ketik /set-kota`,
+            });
           const ct = timeFormatter(data.dt); // ct = current time
           var weatherToday = "";
           weatherToday += `Kota: ${data.name}\n`;
@@ -86,27 +144,23 @@ export const webhook = async (req, res) => {
         }
       );
     } else {
-      sendMessage(subscriber.telp, {
-        text: "Kamu belum subscribe",
+      await sendMessage(subscriber.telp, {
+        text: `Kamu belum subscribe`,
       });
     }
-
     return 1;
   }
-
-  const show_next_state = await showNextState(subscriber.state_id);
-  // const execute_message = await executeMessage(show_next_state.message_id, telp)
-
-  var update = {
-    state_id: show_next_state.next_state,
-  };
-  // const update_subscriber = await updateSubscriber(telp, update);
-
-  // res.json(show_next_state);
-
+  if (subscriberMessage === "/help") {
+    return sendMessage(subscriber.telp, {
+      text: "ini adalah help [ link gdrive ]",
+    });
+  }
+  if (subscriber.kota_id)
+    return sendMessage(subscriber.telp, {
+      text: `Halo ${subscriber.name}, berikut list perintah yang tersedia\n\n/getweather - melihat cuaca saat ini\n/help - panduan penggunaan bot`,
+    });
   const nextState = show_next_state.next_state;
-  console.log(show_next_state.message_id);
-  console.log(nextState);
+
   // FUNCTION REGEX PULAU
   if (nextState === "STATE1")
     await selectPulauStage(subscriber, show_next_state.message_id);
