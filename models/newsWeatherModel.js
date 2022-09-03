@@ -83,6 +83,22 @@ const Weather = database.define("weathers", {
   date: Sequelize.STRING,
 });
 
+const WeatherNotification = database.define(
+  "weather_notifications",
+  {
+    id: {
+      type: Sequelize.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    telp: Sequelize.STRING,
+    text: Sequelize.STRING,
+    kota_id: Sequelize.STRING,
+    schedule_time: Sequelize.STRING,
+  },
+  { timestamps: false }
+);
+
 const Subscriber = database.define("subscribers", {
   telp: {
     primaryKey: true,
@@ -115,4 +131,13 @@ NextState.belongsTo(Message, {
   foreignKey: "message_id",
 });
 
-export { Kota, Provinsi, Pulau, NextState, Message, Weather, Subscriber };
+export {
+  Kota,
+  Provinsi,
+  Pulau,
+  NextState,
+  Message,
+  Weather,
+  WeatherNotification,
+  Subscriber,
+};
