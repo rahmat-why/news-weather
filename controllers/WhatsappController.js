@@ -77,8 +77,6 @@ export const webhook = async (req, res) => {
       if (payload === "pulau") {
         const messages = await generateListPulauMessage();
         await sendMessage(subscriber.telp, messages[1].content_text);
-
-        return true;
       } else if (payload === "provinsi") {
         if (subscriber.pulau_id) {
           const message = await generateListProvinsiMessage(

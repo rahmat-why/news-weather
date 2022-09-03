@@ -6,39 +6,47 @@ import {
   storeWeather,
 } from "./NewsWeatherController.js";
 import date from "date-and-time";
-import schedule from "node-schedule";
 import { sendMessage } from "./WhatsappController.js";
-import { Message } from "../models/newsWeatherModel.js";
+import getWeatherFromApi from "../functions/getWeatherFromApi.js";
+import timeFormatter from "../functions/timeFormatter.js";
+import { Message, WeatherNotification } from "../models/newsWeatherModel.js";
 
 export const etlWeather = async () => {
   try {
     const show_subscriber = await showSubscriber();
+    const templateMessage = await Message.findOne({
+      where: { message_id: "MSG05" },
+    });
+
     for (let i = 0; i < show_subscriber.length; i++) {
-      const get_kota = await getKota(show_subscriber[i].kota_id);
+      const subscriber = show_subscriber[i];
+      const get_kota = await getKota(subscriber.kota_id);
+      const data = await getWeatherFromApi(get_kota.name);
+      const ct = timeFormatter(data.dt); // ct = current time
 
-      var options = {
-        method: "GET",
-        url:
-          "https://api.openweathermap.org/data/2.5/weather?q=" +
-          get_kota.name +
-          "&appid=" +
-          process.env.OPENWEATHERMAP_KEY,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      };
-      request(options, function (error, response) {
-        if (error) throw new Error(error);
+      var newTemplateMessage = templateMessage.content;
+      newTemplateMessage = newTemplateMessage.replace(
+        /%name%/,
+        subscriber.name
+      );
+      newTemplateMessage = newTemplateMessage.replace(/%time%/, ct);
+      newTemplateMessage = newTemplateMessage.replace(/%city_name%/, data.name);
+      newTemplateMessage = newTemplateMessage.replace(
+        /%weather%/,
+        data.weather[0].main
+      );
+      newTemplateMessage = newTemplateMessage.replace(
+        /%temperature%/,
+        data.main.temp
+      );
 
-        var response = JSON.parse(response.body);
-        var weather = response.weather[0].main;
-        const now = new Date();
-        let current_time = date.format(now, "YYYY-MM-DD HH:mm:ss");
-        console.log([show_subscriber[i].kota_id, weather, current_time]);
-        storeWeather(show_subscriber[i].kota_id, weather, current_time);
-
-        return 1;
+      await WeatherNotification.create({
+        telp: subscriber.telp,
+        text: newTemplateMessage,
+        kota_id: subscriber.kota_id,
+        schedule_time: "06:00:00",
       });
+      console.log("Notification was saved to the database!");
     }
   } catch (error) {
     console.log(error);
@@ -65,8 +73,3 @@ export const sendCustomMessage = async (req, res) => {
     });
   });
 };
-
-// const job = schedule.scheduleJob("*/1 * * * *", function () {
-//   etlWeather();
-//   console.log("etlWeather()");
-// });
