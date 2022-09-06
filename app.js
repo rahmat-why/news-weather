@@ -10,7 +10,7 @@ import notifySubscribers from "./functions/notifySubscribers.js";
 const app = express();
 
 const host = process.env.HOST || undefined;
-const port = parseInt(process.env.PORT ?? 8000);
+const port = parseInt(process.env.PORT ?? 3003);
 
 const corsOptions = {
   credentials: true,
