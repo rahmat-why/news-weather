@@ -1,6 +1,6 @@
 
 import { Sequelize, QueryTypes } from'sequelize'
-const database = new Sequelize(PROCESS.env.MYSQL_DATABASE, process.env.MYSQL_USERNAME, process.env.MYSQL_PASSWORD, {
+const database = new Sequelize(process.env.MYSQL_DATABASE, process.env.MYSQL_USERNAME, process.env.MYSQL_PASSWORD, {
     host: 'localhost',
     dialect: 'mysql',
   
