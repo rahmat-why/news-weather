@@ -184,5 +184,6 @@ export const webhook = async (req, res) => {
     await finalStage(subscriber, show_next_state.message_id, subscriberMessage);
   }
 
+  res.json("bgst")
   return false;
 };
