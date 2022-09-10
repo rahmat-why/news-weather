@@ -62,7 +62,7 @@ export const webhook = async (req, res) => {
       kota_id: null,
     },
   });
-
+  res.json("bgst")
   // The response will be an array of subscriber object
   // hence we have to access it with subscriber[0]
   var subscriber = subscriber[0];
