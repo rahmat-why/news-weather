@@ -24,6 +24,10 @@ export const etlWeather = async () => {
       const data = await getWeatherFromApi(get_kota.name);
       const ct = timeFormatter(data.dt); // ct = current time
 
+      if (data === null) {
+        return false
+      }
+      
       var newTemplateMessage = templateMessage.content;
       newTemplateMessage = newTemplateMessage.replace(
         /%name%/,
