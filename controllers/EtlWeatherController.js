@@ -21,7 +21,14 @@ export const etlWeather = async () => {
     for (let i = 0; i < show_subscriber.length; i++) {
       const subscriber = show_subscriber[i];
       const get_kota = await getKota(subscriber.kota_id);
-      const data = await getWeatherFromApi(get_kota.name);
+      
+      const cityName = get_kota.name
+        .toLowerCase()
+        .replace("kabupaten", "") // karena jika query dengan kabupaten hasilnya = kota tidak ditemukan
+        .trim();
+
+      const data = await getWeatherFromApi(cityName);
+      console.log(JSON.stringify([cityName, data]))
       const ct = timeFormatter(data.dt); // ct = current time
 
       if (data === null) {
@@ -41,14 +48,23 @@ export const etlWeather = async () => {
       );
       newTemplateMessage = newTemplateMessage.replace(
         /%temperature%/,
-        data.main.temp
+        parseFloat(data.main.temp-273,15).toFixed(2)
       );
 
-      await WeatherNotification.create({
-        telp: subscriber.telp,
-        text: newTemplateMessage,
-        kota_id: subscriber.kota_id,
-        schedule_time: "06:00:00",
+      const now = new Date();
+      await WeatherNotification.findOrCreate({
+        where: { 
+          telp: subscriber.telp,
+          schedule_time: date.format(now, 'YYYY-MM-DD')+" 06:00:00",
+        },
+        defaults: {
+          telp: subscriber.telp,
+          text: newTemplateMessage,
+          kota_id: subscriber.kota_id,
+          schedule_time: date.format(now, 'YYYY-MM-DD')+" 06:00:00",
+          createdAt: date.format(now, 'YYYY-MM-DD HH:mm:ss'),
+          updatedAt: date.format(now, 'YYYY-MM-DD HH:mm:ss')
+        }
       });
       console.log("Notification was saved to the database!");
     }

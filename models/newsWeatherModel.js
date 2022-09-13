@@ -95,6 +95,9 @@ const WeatherNotification = database.define(
     text: Sequelize.STRING,
     kota_id: Sequelize.STRING,
     schedule_time: Sequelize.STRING,
+    response: Sequelize.STRING,
+    createdAt: Sequelize.STRING,
+    updatedAt: Sequelize.STRING,
   },
   { timestamps: false }
 );

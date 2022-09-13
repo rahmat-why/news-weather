@@ -1,5 +1,5 @@
 import request from "request";
-import { Kota, Pulau, Subscriber } from "../models/newsWeatherModel.js";
+import { Kota, Pulau, Subscriber, WeatherNotification } from "../models/newsWeatherModel.js";
 import { showNextState } from "./NewsWeatherController.js";
 import selectPulauStage, {
   generateListPulauMessage,
@@ -33,6 +33,8 @@ export const sendMessage = async (receiver, content_text) => {
     // console.log("Response Body:", response.body);
     // console.log("Response:", response);
     console.log(response.body.message);
+
+    return response
   });
 
   //   request(options, function (error, response) {
@@ -62,7 +64,6 @@ export const webhook = async (req, res) => {
       kota_id: null,
     },
   });
-  res.json("bgst")
   // The response will be an array of subscriber object
   // hence we have to access it with subscriber[0]
   var subscriber = subscriber[0];
@@ -111,36 +112,22 @@ export const webhook = async (req, res) => {
   }
   if (subscriberMessage === "/getweather") {
     if (subscriber.kota_id) {
-      const kota_id = subscriber.kota_id;
-      const subscriberCity = await Kota.findOne({ where: { kota_id } });
-      const cityName = subscriberCity.name
-        .toLowerCase()
-        .replace("kabupaten", "") // karena jika query dengan kabupaten hasilnya = kota tidak ditemukan
-        .trim();
-      const apiId = process.env.OPENWEATHERMAP_KEY;
+      const last_weather = await WeatherNotification.findOne({
+        where: { telp: subscriber.telp },
+      });
 
-      request(
-        `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${apiId}`,
+      if (last_weather === null) {
+        await sendMessage(subscriber.telp, {
+          text: `silahkan cobalagi nanti`,
+        });
 
-        (err, _, data) => {
-          if (err) {
-            return console.log(err);
-          }
-          data = JSON.parse(data); // karena response data adalah string
-          if (data.cod == 404)
-            return sendMessage(subscriber.telp, {
-              text: `Halo ${subscriber.name}, sepertinya kota kamu belum tersedia\nSilahkan memilih kota yang lain dengan ketik /set-kota`,
-            });
-          const ct = timeFormatter(data.dt); // ct = current time
-          var weatherToday = "";
-          weatherToday += `Kota: ${data.name}\n`;
-          weatherToday += `Keadaan: ${data.weather[0].main}\n`;
-          weatherToday += `Temperatur: ${data.main.temp}`;
-          return sendMessage(subscriber.telp, {
-            text: `Cuaca Hari Ini\nLast Updated: ${ct}\n\n${weatherToday}`,
-          });
-        }
-      );
+        return false
+      }
+
+      const message = JSON.parse(last_weather.text)
+      for (let i = 0; i < message.length; i++) {
+        await sendMessage(subscriber.telp, message[i].content_text); 
+      }
     } else {
       await sendMessage(subscriber.telp, {
         text: `Kamu belum subscribe`,

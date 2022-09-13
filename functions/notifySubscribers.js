@@ -1,6 +1,8 @@
 import timeFormatter from "date-and-time";
 import { sendMessage } from "../controllers/WhatsappController.js";
 import { WeatherNotification } from "../models/newsWeatherModel.js";
+import { Op } from 'sequelize'
+import date from "date-and-time";
 
 function jsonEscape(str) {
   return str.replace(/\\n/g, "\\\\n");
@@ -10,24 +12,31 @@ function messageEscape(str) {
 }
 
 async function notifySubscribers() {
-  const format = "HH:mm:ss";
-  const currentTimeInString = timeFormatter.format(new Date(), format);
-  const notifications = await WeatherNotification.findAll();
+  const now = new Date();
+  const notifications = await WeatherNotification.findAll({ 
+    where: { 
+      response: null,
+      schedule_time: {
+        [Op.lte]: date.format(now, 'YYYY-MM-DD HH:mm:ss')
+      }
+    } 
+  });
 
   notifications.forEach(async (n) => {
-    const notificationTime = timeFormatter.parse(n.schedule_time, format);
-    const currentTime = timeFormatter.parse(currentTimeInString, format);
+    var textMessage = JSON.parse(jsonEscape(n.text))[0];
 
-    const shouldItPosted = notificationTime - currentTime < 0;
+    textMessage.content_text.text = messageEscape(
+      textMessage.content_text.text
+    );
+    await sendMessage(n.telp, textMessage.content_text);
 
-    if (shouldItPosted) {
-      var textMessage = JSON.parse(jsonEscape(n.text))[0];
-
-      textMessage.content_text.text = messageEscape(
-        textMessage.content_text.text
-      );
-      await sendMessage(n.telp, textMessage.content_text);
-    }
+    await WeatherNotification.update(
+      { response: 1 }, 
+    {
+      where: {
+        id: n.id,
+      },
+    });
   });
 }
 
