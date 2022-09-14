@@ -8,8 +8,9 @@ import {
 import date from "date-and-time";
 import { sendMessage } from "./WhatsappController.js";
 import getWeatherFromApi from "../functions/getWeatherFromApi.js";
+import getLatLonFromApi from "../functions/getLatLonFromApi.js";
 import timeFormatter from "../functions/timeFormatter.js";
-import { Message, WeatherNotification } from "../models/newsWeatherModel.js";
+import { Message, WeatherNotification, Kota } from "../models/newsWeatherModel.js";
 
 export const etlWeather = async () => {
   try {
@@ -21,16 +22,9 @@ export const etlWeather = async () => {
     for (let i = 0; i < show_subscriber.length; i++) {
       const subscriber = show_subscriber[i];
       const get_kota = await getKota(subscriber.kota_id);
-      
-      const cityName = get_kota.name
-        .toLowerCase()
-        .replace("kabupaten", "") // karena jika query dengan kabupaten hasilnya = kota tidak ditemukan
-        .trim();
-
-      const data = await getWeatherFromApi(cityName);
-      console.log(JSON.stringify([cityName, data]))
+      const data = await getWeatherFromApi(get_kota.latitude, get_kota.longitude);
       const ct = timeFormatter(data.dt); // ct = current time
-
+      console.log(JSON.stringify([data, get_kota.latitude, get_kota.longitude]))
       if (data === null) {
         return false
       }
@@ -92,4 +86,39 @@ export const sendCustomMessage = async (req, res) => {
       console.log(response.body);
     });
   });
+};
+
+export const etlLatLon = async (req, res) => {
+  const kota = await Kota.findAll({
+    where: {
+      latitude: null 
+    }
+  })
+  for (let i = 0; i < kota.length; i++) {
+    const data = await getLatLonFromApi(kota[i].name);
+    var latitude = data.data[0].latitude
+    var longitude = data.data[0].longitude
+
+    if (data.data[0] === undefined) {
+      await Kota.update({
+        latitude: 0,
+        longitude: 0
+      }, {
+        where: {
+          kota_id: kota[i].kota_id,
+        },
+      });
+
+      return false
+    }
+
+    await Kota.update({
+      latitude: latitude,
+      longitude: longitude
+    }, {
+      where: {
+        kota_id: kota[i].kota_id,
+      },
+    });
+  }
 };

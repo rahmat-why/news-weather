@@ -12,6 +12,8 @@ const Kota = database.define(
     },
     provinsi_id: Sequelize.STRING,
     name: Sequelize.STRING,
+    latitude: Sequelize.STRING,
+    longitude: Sequelize.STRING,
   },
   {
     freezeTableName: true, // https://stackoverflow.com/a/23187186 to prevent sequelize from automatically add "s" to the table name
