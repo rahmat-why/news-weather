@@ -18,7 +18,7 @@ const corsOptions = {
 };
 
 scheduleJob("0 0 01 * * *", async () => await etlWeather()); // setiap jam 1 malam
-scheduleJob("0 0 10 * *", async () => await notifySubscribers()); // setiap menit
+scheduleJob("* * * * *", async () => await notifySubscribers()); // setiap menit
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
