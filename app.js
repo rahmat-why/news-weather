@@ -17,7 +17,7 @@ const corsOptions = {
   origin: "http://localhost:3000",
 };
 
-scheduleJob("0 0 01 * * *", async () => await etlWeather()); // setiap jam 1 malam
+scheduleJob("0 0 */3 * * *", async () => await etlWeather()); // setiap jam 1 malam
 scheduleJob("* * * * *", async () => await notifySubscribers()); // setiap menit
 
 app.use(express.urlencoded({ extended: true }));

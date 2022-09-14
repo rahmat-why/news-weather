@@ -35,7 +35,7 @@ export const etlWeather = async () => {
         subscriber.name
       );
       newTemplateMessage = newTemplateMessage.replace(/%time%/, ct);
-      newTemplateMessage = newTemplateMessage.replace(/%city_name%/, data.name);
+      newTemplateMessage = newTemplateMessage.replace(/%city_name%/, get_kota.name);
       newTemplateMessage = newTemplateMessage.replace(
         /%weather%/,
         data.weather[0].main
@@ -49,13 +49,13 @@ export const etlWeather = async () => {
       await WeatherNotification.findOrCreate({
         where: { 
           telp: subscriber.telp,
-          schedule_time: date.format(now, 'YYYY-MM-DD')+" 06:00:00",
+          schedule_time: date.format(now, 'YYYY-MM-DD HH:mm:ss'),
         },
         defaults: {
           telp: subscriber.telp,
           text: newTemplateMessage,
           kota_id: subscriber.kota_id,
-          schedule_time: date.format(now, 'YYYY-MM-DD')+" 06:00:00",
+          schedule_time: date.format(now, 'YYYY-MM-DD HH:mm:ss'),
           createdAt: date.format(now, 'YYYY-MM-DD HH:mm:ss'),
           updatedAt: date.format(now, 'YYYY-MM-DD HH:mm:ss')
         }
