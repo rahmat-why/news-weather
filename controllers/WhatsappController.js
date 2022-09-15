@@ -137,12 +137,12 @@ export const webhook = async (req, res) => {
   }
   if (subscriberMessage === "/help") {
     return sendMessage(subscriber.telp, {
-      text: "ini adalah help [ link gdrive ]",
+      text: "Untuk feedback boleh banget disampaikan disini https://docs.google.com/forms/d/e/1FAIpQLSfeONuWyIXHIhfzqkinaOY16PTZ0JskThD8shEXxBH38oFqqA/viewform",
     });
   }
   if (subscriber.kota_id)
     return sendMessage(subscriber.telp, {
-      text: `Halo ${subscriber.name}, berikut list perintah yang tersedia\n\n/getweather - melihat cuaca saat ini\n/help - panduan penggunaan bot`,
+      text: `Halo ${subscriber.name}, berikut list perintah yang tersedia\n\n/getweather - melihat cuaca saat ini\n/help - panduan penggunaan bot\n\n untuk feedback boleh banget nih sampaikan disini https://docs.google.com/forms/d/e/1FAIpQLSfeONuWyIXHIhfzqkinaOY16PTZ0JskThD8shEXxBH38oFqqA/viewform`,
     });
   const nextState = show_next_state.next_state;
 
